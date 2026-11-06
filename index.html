@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMX СУДЕЙСТВО</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- DOCX export library -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ===== TOPBAR ===== -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <span class="logo-text">BMX</span>
+      <span class="logo-sub">Судейская система</span>
+    </div>
+    <div class="topbar-status">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-label">ИНИЦИАЛИЗАЦИЯ</span>
+    </div>
+  </header>
+
+  <!-- ===== SIDEBAR ===== -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Обзор</div>
+    <div class="nav-item" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Дашборд
+    </div>
+
+    <div class="sidebar-section">Данные</div>
+    <div class="nav-item" data-page="participants">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Участники
+    </div>
+    <div class="nav-item" data-page="races">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Заезды
+    </div>
+
+    <div class="sidebar-section">Итоги</div>
+    <div class="nav-item" data-page="results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      Результаты
+    </div>
+    <div class="nav-item" data-page="protocols">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      Протоколы
+    </div>
+
+    <div style="flex:1"></div>
+    <div class="sidebar-section">Версия 1.0.0</div>
+  </nav>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- ========== DASHBOARD ========== -->
+    <div class="page" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ДАШБОРД</div>
+          <div class="page-subtitle">ОБЗОР СОРЕВНОВАНИЯ</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openCreateRace()">+ Новый заезд</button>
+          <button class="btn btn-secondary" onclick="openAddParticipant()">+ Участник</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-participants">0</div>
+          <div class="stat-label">Участников</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-races">0</div>
+          <div class="stat-label">Заездов</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-active">0</div>
+          <div class="stat-label">Активных</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-finished">0</div>
+          <div class="stat-label">Завершено</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 32px 16px;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Последние заезды</span>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('races')">Все заезды →</button>
+          </div>
+          <div id="recent-races" style="padding: 8px 0;">
+            <div class="empty-state">
+              <div class="empty-state-icon">🏁</div>
+              <div class="empty-state-text">Загрузка...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PARTICIPANTS ========== -->
+    <div class="page" id="page-participants">
+      <div class="page-header">
+        <div>
+          <div class="page-title">УЧАСТНИКИ</div>
+          <div class="page-subtitle" id="participants-count">0 участников</div>
+        </div>
+        <div class="page-actions">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input class="form-input" type="search" id="participant-search" placeholder="Поиск по имени, номеру..." />
+          </div>
+          <button class="btn btn-primary" onclick="openAddParticipant()">+ Добавить участника</button>
+        </div>
+      </div>
+
+      <div style="padding: 20px 32px;">
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:80px">Номер</th>
+                  <th>ФИО</th>
+                  <th>Спортивная организация</th>
+                  <th>Дата добавления</th>
+                  <th style="width:90px">Действия</th>
+                </tr>
+              </thead>
+              <tbody id="participants-tbody">
+                <tr><td colspan="5">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div class="empty-state-text">Загрузка данных...</div>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== RACES LIST ========== -->
+    <div class="page" id="page-races">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ЗАЕЗДЫ</div>
+          <div class="page-subtitle">УПРАВЛЕНИЕ ЗАЕЗДАМИ</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openCreateRace()">+ Создать заезд</button>
+        </div>
+      </div>
+      <div class="race-list" id="race-list-container">
+        <div class="empty-state"><div class="empty-state-text">Загрузка...</div></div>
+      </div>
+    </div>
+
+    <!-- ========== RACE DETAIL (TABLE) ========== -->
+    <div class="page" id="page-race-detail">
+      <div class="page-header">
+        <div>
+          <div class="page-title race-detail-title">ЗАЕЗД</div>
+          <div class="page-subtitle race-detail-meta"></div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost" onclick="navigate('races')">← Назад</button>
+          <button class="btn btn-secondary" id="race-status-btn"
+            onclick="changeRaceStatus(App.currentRaceId)">▶ Начать заезд</button>
+          <button class="btn btn-ghost" onclick="downloadPdf(App.currentRaceId)">PDF</button>
+          <button class="btn btn-secondary" onclick="downloadDocx(App.currentRaceId)">DOCX</button>
+        </div>
+      </div>
+
+      <div style="padding: 20px 32px;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">ТАБЛИЦА ЗАЕЗДА</span>
+            <span class="text-muted text-mono" style="font-size:11px">
+              Введите номер участника → Enter. Результат мото: место на финише (1–8)
+            </span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:80px">№ уч.</th>
+                  <th>Фамилия, Имя / Организация</th>
+                  <th>Старт. позиции</th>
+                  <th>
+                    <div>Мото заезды</div>
+                    <div class="flex gap-8" style="margin-top:4px">
+                      <span style="width:60px;text-align:center;font-size:10px">1</span>
+                      <span style="width:60px;text-align:center;font-size:10px">2</span>
+                      <span style="width:60px;text-align:center;font-size:10px">3</span>
+                    </div>
+                  </th>
+                  <th style="width:70px">Очки</th>
+                  <th style="width:70px">Место</th>
+                </tr>
+              </thead>
+              <tbody id="race-tbody">
+                <tr><td colspan="6">
+                  <div class="empty-state">
+                    <div class="empty-state-text">Выберите заезд из списка</div>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Scoring legend -->
+        <div class="card mt-16">
+          <div class="card-header"><span class="card-title">СИСТЕМА ПОДСЧЁТА ОЧКОВ</span></div>
+          <div class="card-body">
+            <div class="flex gap-16" style="flex-wrap:wrap">
+              <div>
+                <div class="text-muted text-mono" style="font-size:11px;margin-bottom:8px">ПРАВИЛА</div>
+                <div style="font-size:13px;line-height:2">
+                  • Место на финише = очки (1-е место = 1 очко)<br>
+                  • DNS / нефинишировал = 8 штрафных очков<br>
+                  • Итог = сумма очков за 3 мото<br>
+                  • Меньше очков → лучше место<br>
+                  • Ничья: побеждает лучший в мото 3, затем мото 2
+                </div>
+              </div>
+              <div>
+                <div class="text-muted text-mono" style="font-size:11px;margin-bottom:8px">ПРИМЕР</div>
+                <table class="data-table" style="width:auto;font-size:12px">
+                  <tr><th>Мото 1</th><th>Мото 2</th><th>Мото 3</th><th>Итог</th><th>Место</th></tr>
+                  <tr><td>1</td><td>2</td><td>1</td><td class="text-accent"><b>4</b></td><td>🥇 1</td></tr>
+                  <tr><td>2</td><td>1</td><td>2</td><td class="text-accent"><b>5</b></td><td>🥈 2</td></tr>
+                  <tr><td>3</td><td>3</td><td>3</td><td class="text-accent"><b>9</b></td><td>🥉 3</td></tr>
+                  <tr><td>0</td><td>2</td><td>4</td><td class="text-accent"><b>14</b></td><td>4</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== RESULTS ========== -->
+    <div class="page" id="page-results">
+      <div class="page-header">
+        <div>
+          <div class="page-title">РЕЗУЛЬТАТЫ</div>
+          <div class="page-subtitle">ИТОГИ ЗАВЕРШЁННЫХ ЗАЕЗДОВ</div>
+        </div>
+      </div>
+      <div style="padding: 20px 32px;" id="results-container">
+        <div class="empty-state">
+          <div class="empty-state-icon">🏆</div>
+          <div class="empty-state-text">Загрузка...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PROTOCOLS ========== -->
+    <div class="page" id="page-protocols">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ПРОТОКОЛЫ</div>
+          <div class="page-subtitle">ЭКСПОРТ ДОКУМЕНТОВ</div>
+        </div>
+      </div>
+      <div class="race-list" id="protocols-list"></div>
+    </div>
+
+  </main><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ============================
+     MODALS
+============================= -->
+
+<!-- Add/Edit Participant -->
+<div class="modal-overlay" id="participant-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="participant-modal-title">Добавить участника</div>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="participant-id" />
+      <div class="form-row cols-2">
+        <div class="form-group">
+          <label class="form-label">Уникальный номер *</label>
+          <input class="form-input" id="p-unique-number" type="text" placeholder="Например: 42" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Спортивная организация</label>
+          <input class="form-input" id="p-org" type="text" placeholder="СДЮШОР №1" />
+        </div>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-group">
+          <label class="form-label">Фамилия *</label>
+          <input class="form-input" id="p-last-name" type="text" placeholder="Иванов" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Имя *</label>
+          <input class="form-input" id="p-first-name" type="text" placeholder="Иван" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Отчество</label>
+          <input class="form-input" id="p-middle-name" type="text" placeholder="Иванович" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('participant-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveParticipant()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Race -->
+<div class="modal-overlay" id="race-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Новый заезд</div>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="race-form">
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label class="form-label">Номер заезда</label>
+            <input class="form-input" id="r-number" type="number" min="1" placeholder="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Дата</label>
+            <input class="form-input" id="r-date" type="date" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Название заезда *</label>
+            <input class="form-input" id="r-name" type="text" placeholder="Гонка 'Классик' — Элита мужчины" />
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select class="form-input" id="r-category">
+              <option value="">— выберите —</option>
+              <option>Элита мужчины</option>
+              <option>Элита женщины</option>
+              <option>Юниоры</option>
+              <option>Юниорки</option>
+              <option>Мальчики 9-10</option>
+              <option>Мальчики 11-12</option>
+              <option>Мальчики 13-14</option>
+              <option>Мальчики 15-16</option>
+              <option>Девочки 9-10</option>
+              <option>Девочки 11-12</option>
+              <option>Девочки 13-14</option>
+              <option>Девочки 15-16</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Количество участников</label>
+            <select class="form-input" id="r-slots">
+              <option value="8" selected>8 (стандарт)</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('race-modal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveRace()">Создать заезд</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container"></div>
+
+<!-- Firebase SDK -->
+<script type="module" src="js/app.js"></script>
+
+<!-- Expose navigate globally for inline onclick -->
+<script>
+  // Thin wrapper until ES module loads
+  function navigate(page) {
+    if (window._navigateFn) window._navigateFn(page);
+  }
+</script>
+
+</body>
+</html>
